@@ -2,6 +2,7 @@ package com.lirugo.github.parser.service;
 
 import com.lirugo.github.parser.model.Repo;
 import com.lirugo.github.parser.model.RepoFile;
+import com.lirugo.github.parser.model.Word;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -12,7 +13,9 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @Slf4j
@@ -22,16 +25,31 @@ import org.springframework.web.client.RestTemplate;
 public class GitHubServiceImpl implements GitHubService {
 
   RestTemplate restTemplate;
+  ParserService parserService;
 
   @Override
   public List<Repo> getRepos(String owner) {
-    var res = restTemplate.getForEntity(String.format(REPO_URL, owner), Repo[].class);
-    return List.of(Objects.requireNonNull(res.getBody()));
+    List<Repo> res = new ArrayList<>();
+
+    try {
+      ResponseEntity<Repo[]> response = restTemplate.getForEntity(String.format(REPO_URL, owner),
+          Repo[].class);
+      if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+        res = Arrays.asList(response.getBody());
+      } else {
+        log.warn("Failed to retrieve repos for owner: {}, code: {}, body: {}", owner,
+            response.getStatusCode(), response.getBody());
+      }
+    } catch (RestClientException e) {
+      log.warn("Failed to retrieve repos for owner: {}", owner);
+    }
+
+    return res;
   }
 
   @Override
   public List<RepoFile> getFiles(String owner, String fileRegExp, Integer fileLimit) {
-    var res = new ArrayList<RepoFile>();
+    var files = new ArrayList<RepoFile>();
 
     getRepos(owner)
         .stream()
@@ -41,13 +59,17 @@ public class GitHubServiceImpl implements GitHubService {
 
           return Arrays.stream(Objects.requireNonNull(repoFiles))
               .filter(repoFile -> repoFile.getName().matches(fileRegExp))
-              .peek(r -> r.setRepo(repo))
+              .peek(file -> {
+                file.setRepo(repo);
+                file.setContent(
+                    getFileContent(owner, file.getRepo().name(), file.getPath()));
+              })
               .toList();
         })
         .limit(fileLimit)
-        .forEach(res::addAll);
+        .forEach(files::addAll);
 
-    return res;
+    return files;
   }
 
   @Override
@@ -68,11 +90,22 @@ public class GitHubServiceImpl implements GitHubService {
     return content;
   }
 
-  private Optional<String> decodeBase64(String contentBase64) {
-    try {
-      contentBase64 = contentBase64
-          .replace("\n", "");
+  @Override
+  public List<Word> getWordFrequency(String owner, String fileRegExp, Integer fileLimit,
+      Integer letterLimit,
+      Integer topLimit) {
+    var files = getFiles(owner, fileRegExp, fileLimit);
 
+    return parserService.countWordFrequency(files, letterLimit, topLimit);
+  }
+
+  private Optional<String> decodeBase64(Optional<String> base64) {
+    if (base64.isEmpty()) {
+      return Optional.empty();
+    }
+
+    try {
+      var contentBase64 = base64.get().replace("\r", "").replace("\n", "");
       var decodedBytes = Base64.getDecoder().decode(contentBase64);
 
       return Optional.of(new String(decodedBytes));

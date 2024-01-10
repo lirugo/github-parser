@@ -5,7 +5,6 @@ import com.lirugo.github.parser.model.Repo;
 import com.lirugo.github.parser.model.RepoFile;
 import com.lirugo.github.parser.model.Word;
 import com.lirugo.github.parser.service.GitHubService;
-import com.lirugo.github.parser.service.ParserService;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class ParserController {
 
   GitHubService gitHubService;
-  ParserService parserService;
 
   @GetMapping("/repos")
   public List<Repo> getRepos(@RequestParam String owner) {
@@ -44,7 +42,7 @@ public class ParserController {
       @RequestParam(required = false, defaultValue = "100") Integer fileLimit,
       @RequestParam(required = false, defaultValue = "4") Integer letterLimit,
       @RequestParam(required = false, defaultValue = "3") Integer topLimit) {
-    return parserService.getWordFrequency(owner, fileRegExp, fileLimit, letterLimit, topLimit);
+    return gitHubService.getWordFrequency(owner, fileRegExp, fileLimit, letterLimit, topLimit);
   }
 
 }

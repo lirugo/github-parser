@@ -2,6 +2,7 @@ package com.lirugo.github.parser.service;
 
 import com.lirugo.github.parser.model.Repo;
 import com.lirugo.github.parser.model.RepoFile;
+import com.lirugo.github.parser.model.Word;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +16,10 @@ public interface GitHubService {
   List<Repo> getRepos(String owner);
 
   List<RepoFile> getFiles(String owner, String fileRegExp, Integer fileLimit);
+
   Optional<String> getFileContent(String owner, String repo, String filePath);
+
+  List<Word> getWordFrequency(String owner, String fileRegExp, Integer fileLimit,
+      Integer letterLimit, Integer topLimit);
 
 }

@@ -1,7 +1,11 @@
 package com.lirugo.github.parser.service;
 
+import com.lirugo.github.parser.model.RepoFile;
 import com.lirugo.github.parser.model.Word;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -14,20 +18,34 @@ import org.springframework.stereotype.Service;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ParserServiceImpl implements ParserService {
 
-  GitHubService gitHubService;
-
-  @Override
-  public List<Word> getWordFrequency(String owner, String fileRegExp, Integer fileLimit,
-      Integer letterLimit,
+  public List<Word> countWordFrequency(List<RepoFile> files, Integer letterLimit,
       Integer topLimit) {
-    var files = gitHubService.getFiles(owner, fileRegExp, fileLimit);
+    Map<String, Integer> frequencyMap = new HashMap<>();
 
-    files.forEach(file -> {
-      var content = gitHubService.getFileContent(owner, file.getRepo().name(), file.getPath());
-      content.ifPresent(log::debug);
-      // TODO implement frequency map
-    });
+    for (var file : files) {
+      if (file.getContent().isEmpty()) {
+        log.warn("File content is null. Repo: {}, Path: {}",
+            file.getRepo().name(), file.getPath());
+        continue;
+      }
 
-    return List.of();
+      var content = file.getContent().get();
+      // TODO implement my own algorithm
+      // TODO
+      var words = content
+          .replaceAll("[^a-zA-Z ]", "")
+          .split("\\s+");
+      for (var word : words) {
+        if (word.length() <= letterLimit && !word.isBlank()) {
+          frequencyMap.merge(word, 1, Integer::sum);
+        }
+      }
+    }
+
+    return frequencyMap.entrySet().stream()
+        .map(entry -> new Word(entry.getKey(), entry.getValue()))
+        .sorted(Comparator.comparingInt(Word::frequency).reversed())
+        .limit(topLimit)
+        .toList();
   }
 }
