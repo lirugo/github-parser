@@ -1,4 +1,12 @@
 server:
-  port: ${port:8585}
+  port: ${ PORT:8585 }
   servlet:
     context-path: /api/v1
+
+github:
+  token: ${ GITHUB_TOKEN:null }
+
+logging:
+  level:
+    org.springframework: INFO
+    com.lirugo.github: DEBUG

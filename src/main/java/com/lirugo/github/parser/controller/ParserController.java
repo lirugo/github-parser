@@ -3,7 +3,9 @@ package com.lirugo.github.parser.controller;
 
 import com.lirugo.github.parser.model.Repo;
 import com.lirugo.github.parser.model.RepoFile;
+import com.lirugo.github.parser.model.Word;
 import com.lirugo.github.parser.service.GitHubService;
+import com.lirugo.github.parser.service.ParserService;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -20,19 +22,29 @@ import org.springframework.web.bind.annotation.RestController;
 public class ParserController {
 
   GitHubService gitHubService;
+  ParserService parserService;
 
   @GetMapping("/repos")
-  public List<Repo> repo(@RequestParam String owner) {
+  public List<Repo> getRepos(@RequestParam String owner) {
     return gitHubService.getRepos(owner);
   }
 
-
-//  @RequestParam(required = false, defaultValue = "100") Integer fileLimit
   @GetMapping("/files")
-  public List<RepoFile> parse(
+  public List<RepoFile> getFiles(
       @RequestParam String owner,
-      @RequestParam String fileReqExp) {
-    return gitHubService.getFiles(owner, fileReqExp);
+      @RequestParam String fileRegExp,
+      @RequestParam(required = false, defaultValue = "100") Integer fileLimit) {
+    return gitHubService.getFiles(owner, fileRegExp, fileLimit);
+  }
+
+  @GetMapping("/words-frequency")
+  public List<Word> getWordFrequency(
+      @RequestParam String owner,
+      @RequestParam String fileRegExp,
+      @RequestParam(required = false, defaultValue = "100") Integer fileLimit,
+      @RequestParam(required = false, defaultValue = "4") Integer letterLimit,
+      @RequestParam(required = false, defaultValue = "3") Integer topLimit) {
+    return parserService.getWordFrequency(owner, fileRegExp, fileLimit, letterLimit, topLimit);
   }
 
 }

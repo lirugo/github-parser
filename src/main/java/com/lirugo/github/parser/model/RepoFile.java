@@ -10,5 +10,7 @@ public final class RepoFile {
 
   Repo repo;
   String name;
+  String content;
+  String path;
   Integer size;
 }
