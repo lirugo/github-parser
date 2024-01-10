@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ParserServiceImpl implements ParserService {
 
-  public List<Word> countWordFrequency(List<RepoFile> files, Integer letterLimit,
+  public List<Word> countWordFrequency(List<RepoFile> files, Integer minLetter,
       Integer topLimit) {
     Map<String, Integer> frequencyMap = new HashMap<>();
 
@@ -35,7 +35,7 @@ public class ParserServiceImpl implements ParserService {
       var words = splitTextToWords(file.getContent());
 
       for (var word : words) {
-        if (word.length() <= letterLimit && !word.isBlank()) {
+        if (!word.isBlank()) {
           frequencyMap.merge(word, 1, Integer::sum);
         }
       }
@@ -44,7 +44,7 @@ public class ParserServiceImpl implements ParserService {
     return frequencyMap.entrySet().stream()
         .map(entry -> new Word(entry.getKey(), entry.getValue()))
         .sorted(Comparator.comparingInt(Word::frequency).reversed())
-        .filter(word -> word.word().length() <= letterLimit)
+        .filter(word -> word.word().length() > minLetter)
         .limit(topLimit)
         .toList();
   }

@@ -40,9 +40,9 @@ public class ParserController {
       @RequestParam String owner,
       @RequestParam String fileRegExp,
       @RequestParam(required = false, defaultValue = "100") Integer fileLimit,
-      @RequestParam(required = false, defaultValue = "4") Integer letterLimit,
+      @RequestParam(required = false, defaultValue = "4") Integer minLetter,
       @RequestParam(required = false, defaultValue = "3") Integer topLimit) {
-    return gitHubService.getWordFrequency(owner, fileRegExp, fileLimit, letterLimit, topLimit);
+    return gitHubService.getWordFrequency(owner, fileRegExp, fileLimit, minLetter, topLimit);
   }
 
 }

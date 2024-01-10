@@ -20,6 +20,6 @@ public interface GitHubService {
   Optional<String> getFileContent(String owner, String repo, String filePath);
 
   List<Word> getWordFrequency(String owner, String fileRegExp, Integer fileLimit,
-      Integer letterLimit, Integer topLimit);
+      Integer minLetter, Integer topLimit);
 
 }

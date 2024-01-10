@@ -34,12 +34,12 @@ class ParserServiceImplTest {
     RepoFile file2 = new RepoFile(repo, "name", "path2", 1, Optional.of(readme1Content));
     List<RepoFile> files = List.of(file1, file2);
 
-    List<Word> result = service.countWordFrequency(files, 10, 3);
+    List<Word> result = service.countWordFrequency(files, 4, 3);
 
     assertEquals(3, result.size());
     assertEquals("foobar", result.get(0).word());
     assertEquals(8, result.get(0).frequency());
-    assertEquals("to", result.get(1).word());
-    assertEquals(4, result.get(1).frequency());
+    assertEquals("returns", result.get(1).word());
+    assertEquals(3, result.get(1).frequency());
   }
 }

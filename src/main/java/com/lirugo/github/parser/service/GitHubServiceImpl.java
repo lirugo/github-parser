@@ -92,11 +92,11 @@ public class GitHubServiceImpl implements GitHubService {
 
   @Override
   public List<Word> getWordFrequency(String owner, String fileRegExp, Integer fileLimit,
-      Integer letterLimit,
+      Integer minLetter,
       Integer topLimit) {
     var files = getFiles(owner, fileRegExp, fileLimit);
 
-    return parserService.countWordFrequency(files, letterLimit, topLimit);
+    return parserService.countWordFrequency(files, minLetter, topLimit);
   }
 
   private Optional<String> decodeBase64(Optional<String> base64) {
