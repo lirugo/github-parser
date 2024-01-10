@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  github-parser:
+    image: github-parser
+    build: ../
+    ports:
+      - "8585:8585"
+    environment:
+      GITHUB_TOKEN: YOUR_GITHUB_TOKEN
