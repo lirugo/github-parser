@@ -1,5 +1,6 @@
 package com.lirugo.github.parser.service;
 
+import com.lirugo.github.parser.annotations.ExecutionTime;
 import com.lirugo.github.parser.model.RepoFile;
 import com.lirugo.github.parser.model.Word;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ParserServiceImpl implements ParserService {
 
+  @ExecutionTime
   public List<Word> countWordFrequency(List<RepoFile> files, Integer minLetter,
       Integer topLimit) {
     Map<String, Integer> frequencyMap = new HashMap<>();
@@ -49,7 +51,15 @@ public class ParserServiceImpl implements ParserService {
         .toList();
   }
 
-  private List<String> splitTextToWords(Optional<String> content) {
+  /**
+   * Total README.md files: 27.
+   * Total words: 2617
+   * Total time with pointer approach: 17.243277 ms
+   * Total time with regexp: 24.867131 ms
+   * ~30% faster
+   * Url: http://localhost:8585/api/v1/github-parser/words-frequency?owner=Spotify&fileRegExp=README.md&fileLimit=3000
+   */
+  public List<String> splitTextToWords(Optional<String> content) {
     return content
         .map(this::getWords)
 //        .map(this::splitWords)
@@ -84,7 +94,7 @@ public class ParserServiceImpl implements ParserService {
   }
 
   /**
-   * Regex split is slower than my method TODO check it
+   * Regex split is slower than my method
    *
    * @param content
    * @return
