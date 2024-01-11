@@ -31,7 +31,7 @@ public class ParserController {
   public List<RepoFile> getFiles(
       @RequestParam String owner,
       @RequestParam String fileRegExp,
-      @RequestParam(required = false, defaultValue = "100") Integer fileLimit) {
+      @RequestParam(required = false, defaultValue = "1000") Integer fileLimit) {
     return gitHubService.getFiles(owner, fileRegExp, fileLimit);
   }
 
