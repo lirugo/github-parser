@@ -29,8 +29,7 @@ public class ParserServiceImpl implements ParserService {
 
     for (var file : files) {
       if (file.getContent().isEmpty()) {
-        log.warn("File content is null. Repo: {}, Path: {}",
-            file.getRepo().name(), file.getPath());
+        log.warn("File content is null. Path: {}", file.getPath());
         continue;
       }
 

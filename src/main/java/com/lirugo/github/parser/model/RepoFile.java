@@ -11,9 +11,10 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public final class RepoFile {
 
-  Repo repo;
-  String name;
   String path;
+  String name;
+  FileType type;
   Integer size;
+  String url;
   Optional<String> content;
 }

@@ -1,5 +1,7 @@
 package com.lirugo.github.parser.service;
 
+import com.lirugo.github.parser.model.FileType;
+import com.lirugo.github.parser.model.GitTree;
 import com.lirugo.github.parser.model.Repo;
 import com.lirugo.github.parser.model.RepoFile;
 import com.lirugo.github.parser.model.Word;
@@ -7,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class GitHubServiceImpl implements GitHubService {
 
+  private static final String DEFAULT_BRANCH = "master";
   RestTemplate restTemplate;
   ParserService parserService;
 
@@ -41,7 +43,7 @@ public class GitHubServiceImpl implements GitHubService {
             response.getStatusCode(), response.getBody());
       }
     } catch (RestClientException e) {
-      log.warn("Failed to retrieve repos for owner: {}", owner);
+      log.warn("Failed to retrieve repos for owner: {}, ex: {}", owner, e.getMessage());
     }
 
     return res;
@@ -54,17 +56,40 @@ public class GitHubServiceImpl implements GitHubService {
     getRepos(owner)
         .stream()
         .map(repo -> {
-          var repoFiles = restTemplate.getForEntity(String.format(FILE_URL, owner, repo.name()),
-              RepoFile[].class).getBody();
+          ResponseEntity<GitTree> response = null;
+          var repoFiles = new ArrayList<RepoFile>();
 
-          return Arrays.stream(Objects.requireNonNull(repoFiles))
-              .filter(repoFile -> repoFile.getName().matches(fileRegExp))
-              .peek(file -> {
-                file.setRepo(repo);
-                file.setContent(
-                    getFileContent(owner, file.getRepo().name(), file.getPath()));
-              })
-              .toList();
+          try {
+            response = restTemplate.getForEntity(
+                String.format(FILE_URL, owner, repo.name(), DEFAULT_BRANCH),
+                GitTree.class);
+
+            if (response.getStatusCode().is2xxSuccessful()
+                && response.getBody() != null
+                && response.getBody().getTree() != null) {
+              response.getBody().getTree()
+                  .stream()
+                  .filter(file -> file.getType().equals(FileType.blob))
+                  .peek(file -> {
+                        var path = file.getPath();
+                        var fileName = path.substring(path.lastIndexOf("/") + 1);
+                        file.setName(fileName);
+                      }
+                  )
+                  .filter(file -> file.getName().matches(fileRegExp))
+                  .peek(file -> file.setContent(
+                      getFileContent(file.getUrl())))
+                  .forEach(repoFiles::add);
+            } else {
+              log.warn("Failed to retrieve files for repo: {}, code: {}, body: {}", repo.name(),
+                  response.getStatusCode(), response.getBody());
+            }
+
+          } catch (RestClientException e) {
+            log.warn("Failed to retrieve files for repo: {}", repo.name());
+          }
+
+          return repoFiles;
         })
         .limit(fileLimit)
         .forEach(files::addAll);
@@ -73,9 +98,8 @@ public class GitHubServiceImpl implements GitHubService {
   }
 
   @Override
-  public Optional<String> getFileContent(String owner, String repo, String filePath) {
-    var response = restTemplate.getForEntity(String.format(FILE_CONTENT_URL, owner, repo, filePath),
-        RepoFile.class);
+  public Optional<String> getFileContent(String url) {
+    var response = restTemplate.getForEntity(url, RepoFile.class);
     Optional<String> content = Optional.empty();
 
     if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {

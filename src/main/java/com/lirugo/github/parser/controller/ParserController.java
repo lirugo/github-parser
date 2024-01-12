@@ -30,7 +30,7 @@ public class ParserController {
   @GetMapping("/files")
   public List<RepoFile> getFiles(
       @RequestParam String owner,
-      @RequestParam String fileRegExp,
+      @RequestParam(required = false, defaultValue = "README.md") String fileRegExp,
       @RequestParam(required = false, defaultValue = "1000") Integer fileLimit) {
     return gitHubService.getFiles(owner, fileRegExp, fileLimit);
   }
@@ -38,7 +38,7 @@ public class ParserController {
   @GetMapping("/words-frequency")
   public List<Word> getWordFrequency(
       @RequestParam String owner,
-      @RequestParam String fileRegExp,
+      @RequestParam(required = false, defaultValue = "README.md") String fileRegExp,
       @RequestParam(required = false, defaultValue = "1000") Integer fileLimit,
       @RequestParam(required = false, defaultValue = "4") Integer minLetter,
       @RequestParam(required = false, defaultValue = "3") Integer topLimit) {

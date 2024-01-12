@@ -2,6 +2,7 @@ package com.lirugo.github.parser.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.lirugo.github.parser.model.FileType;
 import com.lirugo.github.parser.model.Repo;
 import com.lirugo.github.parser.model.RepoFile;
 import com.lirugo.github.parser.model.Word;
@@ -29,9 +30,9 @@ class ParserServiceImplTest {
 
     ParserServiceImpl service = new ParserServiceImpl();
 
-    Repo repo = new Repo(1, "testOwner");
-    RepoFile file1 = new RepoFile(repo, "name", "path1", 1, Optional.of("hello world hello"));
-    RepoFile file2 = new RepoFile(repo, "name", "path2", 1, Optional.of(readme1Content));
+    var str1 = "hello world hello";
+    RepoFile file1 = new RepoFile("name", "path1", FileType.blob, str1.length(), "url", Optional.of(str1));
+    RepoFile file2 = new RepoFile("name", "path2", FileType.blob, readme1Content.length(), "url", Optional.of(readme1Content));
     List<RepoFile> files = List.of(file1, file2);
 
     List<Word> result = service.countWordFrequency(files, 4, 3);
